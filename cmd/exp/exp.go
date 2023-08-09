@@ -1,8 +1,30 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 func main() {
-	numbers := []int{1, 2, 3}
-	fmt.Println(numbers[4])
+	err := B()
+	// TODO: Determine if the `err` variable is an `ErrNotFound`
+	if errors.Is(err, ErrNotFound) {
+		fmt.Println("error is ErrNotFound")
+	} else {
+		fmt.Println("not ErrNotFound")
+	}
+}
+
+var ErrNotFound = errors.New("not found")
+
+func A() error {
+	return ErrNotFound
+}
+
+func B() error {
+	err := A()
+	if err != nil {
+		return fmt.Errorf("b: %w", err)
+	}
+	return nil
 }

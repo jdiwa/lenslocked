@@ -16,15 +16,19 @@ func main() {
 	r.Get("/", controllers.StaticHandler(
 		views.Must(views.Parse(filepath.Join("templates", "home.gohtml")))))
 
-	r.Get("/", controllers.StaticHandler(
+	r.Get("/contact", controllers.StaticHandler(
 		views.Must(views.Parse(filepath.Join("templates", "contact.gohtml")))))
 
-	r.Get("/", controllers.StaticHandler(
+	r.Get("/faq", controllers.StaticHandler(
 		views.Must(views.Parse(filepath.Join("templates", "faq.gohtml")))))
+
+	r.Get("/misc", controllers.StaticHandler(
+		views.Must(views.Parse(filepath.Join("templates", "misc.gohtml")))))
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})
+
 	fmt.Println("Starting the server on :3000...")
 	http.ListenAndServe(":3000", r)
 }
