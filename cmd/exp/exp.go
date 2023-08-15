@@ -1,30 +1,37 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"strings"
 )
 
 func main() {
-	err := B()
-	// TODO: Determine if the `err` variable is an `ErrNotFound`
-	if errors.Is(err, ErrNotFound) {
-		fmt.Println("error is ErrNotFound")
-	} else {
-		fmt.Println("not ErrNotFound")
-	}
+	strings := []string{"the", "quick", "brown", "fox"}
+	fmt.Println(Join(strings...))
 }
 
-var ErrNotFound = errors.New("not found")
-
-func A() error {
-	return ErrNotFound
+func Join(vals ...string) string {
+	var sb strings.Builder
+	for i, s := range vals {
+		sb.WriteString(s)
+		if i < len(vals)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	return sb.String()
 }
 
-func B() error {
-	err := A()
-	if err != nil {
-		return fmt.Errorf("b: %w", err)
+func Demo(numbers ...int) {
+	for _, number := range numbers {
+		fmt.Print(number, " ")
 	}
-	return nil
+	fmt.Println()
+}
+
+func Sum(numbers ...int) int {
+	sum := 0
+	for i := 0; i < len(numbers); i++ {
+		sum += numbers[i]
+	}
+	return sum
 }
