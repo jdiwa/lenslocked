@@ -1,37 +1,82 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"strings"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
+type PostgresConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	Database string
+	SSLMode  string
+}
+
+func (cfg PostgresConfig) String() string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLMode)
+}
+
 func main() {
-	strings := []string{"the", "quick", "brown", "fox"}
-	fmt.Println(Join(strings...))
-}
-
-func Join(vals ...string) string {
-	var sb strings.Builder
-	for i, s := range vals {
-		sb.WriteString(s)
-		if i < len(vals)-1 {
-			sb.WriteString(", ")
-		}
+	cfg := PostgresConfig{
+		Host:     "localhost",
+		Port:     "5432",
+		User:     "baloo",
+		Password: "junglebook",
+		Database: "lenslocked",
+		SSLMode:  "disable",
 	}
-	return sb.String()
-}
-
-func Demo(numbers ...int) {
-	for _, number := range numbers {
-		fmt.Print(number, " ")
+	db, err := sql.Open("pgx", cfg.String())
+	if err != nil {
+		panic(err)
 	}
-	fmt.Println()
-}
-
-func Sum(numbers ...int) int {
-	sum := 0
-	for i := 0; i < len(numbers); i++ {
-		sum += numbers[i]
+	err = db.Ping()
+	if err != nil {
+		panic(err)
 	}
-	return sum
+	fmt.Println("Connected")
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS users (
+	  id SERIAL PRIMARY KEY,
+	  name TEXT,
+	  email TEXT NOT NULL
+	);
+
+	CREATE TABLE IF NOT EXISTS orders (
+	  id SERIAL PRIMARY KEY,
+	  user_id INT NOT NULL,
+	  amount INT,
+	  description TEXT
+	);`)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Tables created.")
+	//name := "Jon Calhoun"
+	//email := "jon@calhoun.io"
+	//row := db.QueryRow(`
+	//	INSERT INTO users(name, email)
+	//	VALUES($1, $2) RETURNING id;`, name, email)
+	//var id int
+	//err = row.Scan(&id)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("User created, id =", id)
+	id := 10
+	row := db.QueryRow(`
+		SELECT name, email
+		FROM users
+		WHERE id=$1;`, id)
+	var name, email string
+	err = row.Scan(&name, &email)
+	if err == sql.ErrNoRows {
+		fmt.Println("Error, no rows!")
+	}
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("User info: name=%s, email = %s\n", name, email)
+	defer db.Close()
 }
